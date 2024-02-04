@@ -2,6 +2,7 @@ package com.example.certificateGenerator.service;
 
 import com.example.certificateGenerator.entity.Certificate;
 import com.example.certificateGenerator.entity.Recipient;
+import com.example.certificateGenerator.errorhandling.UploadException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -55,9 +56,7 @@ public class FileService {
     int fontSize12 = 12;
     float pageWidth = 612;
 
-    public List<Recipient> processFileContent(MultipartFile file, Certificate certificate){
-
-        try {
+    public List<Recipient> processFileContent(MultipartFile file, Certificate certificate) throws IOException {
 
             this.recipients = new LinkedList<>();
             this.certificate = certificate;
@@ -83,7 +82,6 @@ public class FileService {
                     throw new IOException("Wrong name for column date issued");
                 }
 
-
             }
 
             // Extract data
@@ -94,13 +92,13 @@ public class FileService {
                 if (currentRow.getCell(0).getCellType() == CellType.NUMERIC) {
                     recipient.setId(Double.valueOf(currentRow.getCell(0).getNumericCellValue()).longValue());
                 } else {
-                    System.out.print(currentRow.getCell(0).getStringCellValue());
+                    throw new IOException("Wrong column id data type");
                 }
 
                 if (currentRow.getCell(1).getCellType() == CellType.STRING) {
                     recipient.setName(currentRow.getCell(1).getStringCellValue());
                 } else {
-                    System.out.print(currentRow.getCell(1).getNumericCellValue());
+                    throw new IOException("Wrong column name data type");
                 }
 
                 if (currentRow.getCell(2).getDateCellValue() != null) {
@@ -108,23 +106,17 @@ public class FileService {
                     Instant instant = date.toInstant();
                     LocalDate localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate();
                     recipient.setIssuedDate(localDate);
+                }else{
+                    throw new IOException("Wrong column date data type");
                 }
 
                 recipients.add(recipient);
-
                 iterationCount++;
-
 
             }
 
             workbook.close();
-
-
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-
-        return recipients;
+            return recipients;
 
     }
 
@@ -133,14 +125,13 @@ public class FileService {
         Recipient recipient = getRecipient(id);
 
         if(recipient == null){
-            throw new RuntimeException("No recipient Found");
+            throw new NullPointerException("No recipient Found");
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PDDocument document = new PDDocument();
         PDPage page = new PDPage();
         document.addPage(page);
-
 
         try {
             PDPageContentStream contentStream = new PDPageContentStream(document, document.getPage(0));
@@ -334,22 +325,14 @@ public class FileService {
         }
 
         return baos;
-
     }
 
     public ByteArrayOutputStream downloadCertificates() {
-        if(this.recipients == null || this.recipients.isEmpty()){
-            throw new RuntimeException("No recipients found");
-        }
-
         //Generate Certificate faster using thread
-        List<ByteArrayOutputStream> certArrayOutputStreamList = new LinkedList<>();
-        List<String> recipientName = new LinkedList<>();
+        Map<Long,ByteArrayOutputStream> certArrayOutputStreamList = new HashMap<>();
         Thread[] threads = new Thread[recipients.size()];
         for (int i =0;i<recipients.size();i++){
-            MultipleCertificate multipleCertificate = new MultipleCertificate(certArrayOutputStreamList,
-                                                                    this,
-                                                                              recipientName);
+            MultipleCertificate multipleCertificate = new MultipleCertificate(certArrayOutputStreamList,this);
             multipleCertificate.setRecipient(recipients.get(i));
             threads[i] = new Thread(multipleCertificate);
             threads[i].start();
@@ -366,21 +349,21 @@ public class FileService {
         ByteArrayOutputStream zipStream = new ByteArrayOutputStream();
         try (ZipOutputStream zipOut = new ZipOutputStream(zipStream)) {
 
-            for (int i = 0; i < certArrayOutputStreamList.size(); i++) {
-                ZipEntry zipEntry = new ZipEntry(recipientName.get(i)+ ".pdf");
+            for (Long id : certArrayOutputStreamList.keySet()) {
+                ZipEntry zipEntry = new ZipEntry(id+ ".pdf");
                 zipOut.putNextEntry(zipEntry);
-                zipOut.write(certArrayOutputStreamList.get(i).toByteArray());
+                zipOut.write(certArrayOutputStreamList.get(id).toByteArray());
                 zipOut.closeEntry();
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UploadException(e.getMessage());
         }
 
         return zipStream;
     }
 
-    public ByteArrayOutputStream generateExcel() {
+    public ByteArrayOutputStream generateExcel() throws IOException {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Data");
 
@@ -391,19 +374,14 @@ public class FileService {
         headerRow.createCell(2).setCellValue("date issued");
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try{
-            workbook.write(outputStream);
-            workbook.close();
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-
+        workbook.write(outputStream);
+        workbook.close();
         return outputStream;
     }
 
     public Recipient getRecipient(Long id) {
         if(this.recipients == null || this.recipients.isEmpty()){
-            throw new RuntimeException("No recipients found");
+            return null;
         }
 
         for (Recipient r : recipients) {

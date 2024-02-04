@@ -6,31 +6,22 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayOutputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class MultipleCertificate implements Runnable{
 
-
-    private List<ByteArrayOutputStream> certArrayOutputStreamList;
+    private Map<Long,ByteArrayOutputStream> certArrayOutputStreamList;
     private Recipient recipient;
-
     private final FileService fileService;
 
-    private List<String> recipientName;
-
-
-    public MultipleCertificate(List<ByteArrayOutputStream> certArrayOutputStreamList, FileService fileService, List<String> recipientName) {
+    public MultipleCertificate(Map<Long,ByteArrayOutputStream> certArrayOutputStreamList, FileService fileService) {
         this.certArrayOutputStreamList = certArrayOutputStreamList;
         this.fileService = fileService;
-        this.recipientName = recipientName;
     }
 
-    public List<ByteArrayOutputStream> getCertArrayOutputStreamList() {
+    public synchronized Map<Long,ByteArrayOutputStream> getCertArrayOutputStreamList() {
         return certArrayOutputStreamList;
-    }
-
-    public synchronized void setCertArrayOutputStreamList(List<ByteArrayOutputStream> certArrayOutputStreamList) {
-        this.certArrayOutputStreamList = certArrayOutputStreamList;
     }
 
     public synchronized Recipient getRecipient() {
@@ -41,18 +32,12 @@ public class MultipleCertificate implements Runnable{
         this.recipient = recipient;
     }
 
-    public synchronized void setRecipientName(List<String> recipientName) {
-        this.recipientName = recipientName;
-    }
-
     @Override
     public void run() {
 
         synchronized (this){
-            ByteArrayOutputStream certificate = fileService.generateCertificatePdf(recipient.getId());
-            certArrayOutputStreamList.add(certificate);
-            recipientName.add(recipient.getName());
-            System.out.println(recipient.getName());
+            ByteArrayOutputStream certificate = fileService.generateCertificatePdf(getRecipient().getId());
+            getCertArrayOutputStreamList().put( getRecipient().getId(), certificate);
         }
 
 

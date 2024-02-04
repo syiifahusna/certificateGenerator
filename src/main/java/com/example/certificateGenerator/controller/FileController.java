@@ -1,14 +1,16 @@
 package com.example.certificateGenerator.controller;
 
 import com.example.certificateGenerator.entity.Certificate;
-import com.example.certificateGenerator.entity.FileUpload;
+import com.example.certificateGenerator.entity.UploadDetails;
 import com.example.certificateGenerator.entity.Recipient;
+import com.example.certificateGenerator.errorhandling.UploadException;
 import com.example.certificateGenerator.service.FileService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,13 +38,8 @@ public class FileController {
         this.fileService = fileService;
     }
 
-    @GetMapping("/")
-    public String test(){
-        return "success";
-    }
-
     @PostMapping("/processfile")
-    public ResponseEntity<Object> processFile(@RequestPart("file") MultipartFile file,
+    public ResponseEntity<Object> processFile(@RequestParam("file") MultipartFile file,
                                               @RequestParam("certOf") String certOf,
                                               @RequestParam("desc1") String desc1,
                                               @RequestParam("desc2") String desc2,
@@ -52,7 +49,7 @@ public class FileController {
                                               @RequestParam("desc4") String desc4,
                                               @RequestPart("signImage") MultipartFile signImage,
                                               @RequestParam("issuerName") String issuerName,
-                                              @RequestParam("issuerTitle") String issuerTitle) throws IOException {
+                                              @RequestParam("issuerTitle") String issuerTitle) {
 
         //file filter
         if(file.isEmpty()){
@@ -77,89 +74,109 @@ public class FileController {
             throw new MultipartException("File size exceeds the maximum allowed limit (2 MB).");
         }
 
-        Path tempFilePath = Files.createTempFile("temp-", "-" + signImage.getOriginalFilename());
-        Files.copy(signImage.getInputStream(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
-        File imageFile = tempFilePath.toFile();
-        imageFile.deleteOnExit();
+        try{
+            Path tempFilePath = Files.createTempFile("temp-", "-" + signImage.getOriginalFilename());
+            Files.copy(signImage.getInputStream(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
+            File imageFile = tempFilePath.toFile();
+            imageFile.deleteOnExit();
 
-        Certificate certificate = new Certificate(  certOf,
-                                                   desc1,
-                                                   desc2,
-                                                   eventName,
-                                                   organizer,
-                                                   desc3,
-                                                   desc4,
-                                                   imageFile,
-                                                   issuerName,
-                                                   issuerTitle);
+            Certificate certificate = new Certificate(  certOf,
+                    desc1,
+                    desc2,
+                    eventName,
+                    organizer,
+                    desc3,
+                    desc4,
+                    imageFile,
+                    issuerName,
+                    issuerTitle);
 
-        List<Recipient> recipients = fileService.processFileContent(file,certificate);
-        FileUpload fileUpload = new FileUpload("success", LocalDate.now(), recipients);
-        return ResponseEntity.ok().body(fileUpload);
+            List<Recipient> recipients = fileService.processFileContent(file,certificate);
+            UploadDetails uploadDetails = new UploadDetails("Success", LocalDate.now(), recipients);
+            return ResponseEntity.ok().body(uploadDetails);
+
+        }catch(IOException e){
+            throw new UploadException(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}/pdf")
-    public ResponseEntity<Resource> generateCertificate(@PathVariable("id") Long id) {
+    public ResponseEntity<Object> generateCertificate(@PathVariable("id") Long id) {
+        try{
 
-        ByteArrayOutputStream baos = fileService.generateCertificatePdf(id);
+            ByteArrayOutputStream baos = fileService.generateCertificatePdf(id);
 
-        byte[] pdfBytes = baos.toByteArray();
+            byte[] pdfBytes = baos.toByteArray();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
 
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(pdfBytes.length)
+                    .body(new ByteArrayResource(pdfBytes));
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentLength(pdfBytes.length)
-                .body(new ByteArrayResource(pdfBytes));
+        }catch(NullPointerException e){
+            throw new UploadException(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}/download")
     public ResponseEntity<Resource> downloadCertificate(@PathVariable("id") Long id){
-        ByteArrayOutputStream baos = fileService.generateCertificatePdf(id);
-        Recipient recipient = fileService.getRecipient(id);
+        try{
+            ByteArrayOutputStream baos = fileService.generateCertificatePdf(id);
+            Recipient recipient = fileService.getRecipient(id);
 
-        byte[] pdfBytes = baos.toByteArray();
+            byte[] pdfBytes = baos.toByteArray();
 
-        // Set headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+recipient.getName()+".pdf");
+            // Set headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+recipient.getName()+".pdf");
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentLength(pdfBytes.length)
-                .body(new ByteArrayResource(pdfBytes));
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(pdfBytes.length)
+                    .body(new ByteArrayResource(pdfBytes));
+        }catch(NullPointerException e){
+            throw new UploadException(e.getMessage());
+        }
     }
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadCertificates(){
+        try{
 
-        ByteArrayOutputStream zipStream = fileService.downloadCertificates();
+            ByteArrayOutputStream zipStream = fileService.downloadCertificates();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", "generateCert_"+LocalDate.now()+".zip");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "generateCert_"+LocalDate.now()+".zip");
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(zipStream.toByteArray());
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(zipStream.toByteArray());
+
+        }catch(NullPointerException e){
+            throw new UploadException(e.getMessage());
+        }
     }
 
     @GetMapping("example/download")
     public ResponseEntity<byte[]> downloadXlsx(){
+        try{
+            ByteArrayOutputStream outputStream = fileService.generateExcel();
 
-        ByteArrayOutputStream outputStream = fileService.generateExcel();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "certNameList.xlsx");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", "certNameList.xlsx");
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(outputStream.toByteArray());
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(outputStream.toByteArray());
-
-
+        }catch(IOException e){
+            throw new UploadException(e.getMessage());
+        }
     }
 
 

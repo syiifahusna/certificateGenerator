@@ -14,7 +14,7 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("/api.certificategenerator/**"); // Modify this later
+        config.addAllowedOriginPattern("*"); // Modify this later
         config.addAllowedHeader("*");
         config.addAllowedMethod("OPTIONS");
         config.addAllowedMethod("GET");
