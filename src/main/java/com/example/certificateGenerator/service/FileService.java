@@ -1,5 +1,6 @@
 package com.example.certificateGenerator.service;
 
+import com.example.certificateGenerator.aspect.LoggingAspect;
 import com.example.certificateGenerator.entity.Certificate;
 import com.example.certificateGenerator.entity.Recipient;
 import com.example.certificateGenerator.errorhandling.UploadException;
@@ -15,6 +16,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +38,8 @@ import java.util.zip.ZipOutputStream;
 
 @Service
 public class FileService {
+
+    Logger logger = LoggerFactory.getLogger(FileService.class);
 
     private List<Recipient> recipients;
     private Certificate certificate;
@@ -125,7 +130,7 @@ public class FileService {
         Recipient recipient = getRecipient(id);
 
         if(recipient == null){
-            throw new NullPointerException("No recipient Found");
+            throw new NullPointerException("No recipient found");
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -328,6 +333,12 @@ public class FileService {
     }
 
     public ByteArrayOutputStream downloadCertificates() {
+
+        if(recipients == null || recipients.isEmpty()){
+            throw new NullPointerException("No recipient found");
+        }
+
+
         //Generate Certificate faster using thread
         Map<Long,ByteArrayOutputStream> certArrayOutputStreamList = new HashMap<>();
         Thread[] threads = new Thread[recipients.size()];
@@ -335,6 +346,8 @@ public class FileService {
             MultipleCertificate multipleCertificate = new MultipleCertificate(certArrayOutputStreamList,this);
             multipleCertificate.setRecipient(recipients.get(i));
             threads[i] = new Thread(multipleCertificate);
+            threads[i].setName(recipients.get(i).getName());
+            logger.info("Starting thread : " + threads[i].getName());
             threads[i].start();
         }
 
@@ -350,7 +363,8 @@ public class FileService {
         try (ZipOutputStream zipOut = new ZipOutputStream(zipStream)) {
 
             for (Long id : certArrayOutputStreamList.keySet()) {
-                ZipEntry zipEntry = new ZipEntry(id+ ".pdf");
+                logger.info("zipping recipient : " + id);
+                ZipEntry zipEntry = new ZipEntry(id + ".pdf");
                 zipOut.putNextEntry(zipEntry);
                 zipOut.write(certArrayOutputStreamList.get(id).toByteArray());
                 zipOut.closeEntry();
@@ -365,7 +379,7 @@ public class FileService {
 
     public ByteArrayOutputStream generateExcel() throws IOException {
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Data");
+        Sheet sheet = workbook.createSheet("NameList");
 
         // Create header row
         Row headerRow = sheet.createRow(0);

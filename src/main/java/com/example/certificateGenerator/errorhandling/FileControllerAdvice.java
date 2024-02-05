@@ -9,18 +9,21 @@ import org.springframework.web.multipart.MultipartException;
 @ControllerAdvice
 public class FileControllerAdvice {
 
-    ErrorDetails ed = null;
-
     @ExceptionHandler(MultipartException.class)
-    public ResponseEntity handleMultipartException(Exception ex){
-        ed = new ErrorDetails("Not Acceptable",ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(ed);
+    public ResponseEntity handleMultipartException(MultipartException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                .body(new ErrorDetails("Not Acceptable", ex.getMessage()));
     }
 
     @ExceptionHandler(UploadException.class)
-    public ResponseEntity handleUploadException(Exception ex){
-        ed = new ErrorDetails("Internal Server Error",ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ed);
+    public ResponseEntity handleUploadException(UploadException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorDetails("Internal Server Error", ex.getMessage()));
     }
 
+    @ExceptionHandler(PathNotFoundException.class)
+    public ResponseEntity handlePathNotFoundException(PathNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorDetails("Not Found", ex.getMessage()));
+    }
 }

@@ -3,6 +3,7 @@ package com.example.certificateGenerator.controller;
 import com.example.certificateGenerator.entity.Certificate;
 import com.example.certificateGenerator.entity.UploadDetails;
 import com.example.certificateGenerator.entity.Recipient;
+import com.example.certificateGenerator.errorhandling.PathNotFoundException;
 import com.example.certificateGenerator.errorhandling.UploadException;
 import com.example.certificateGenerator.service.FileService;
 import org.springframework.core.io.ByteArrayResource;
@@ -31,7 +32,9 @@ import java.util.*;
 public class FileController {
 
     private final FileService fileService;
-    private static final long MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
+    private static final long MAX_FILE_SIZE = 100L * 1024; // 500 KB
+
+    private static final long MAX_IMAGE_SIZE = 500L * 1024; // 100 KB
 
     @Autowired
     public FileController(FileService fileService) {
@@ -70,7 +73,7 @@ public class FileController {
         if (!signImage.getOriginalFilename().toLowerCase().endsWith(".png")) {
             throw new MultipartException("Only png files are allowed.");
         }
-        if (signImage.getSize() > MAX_FILE_SIZE) {
+        if (signImage.getSize() > MAX_IMAGE_SIZE) {
             throw new MultipartException("File size exceeds the maximum allowed limit (2 MB).");
         }
 
@@ -178,7 +181,5 @@ public class FileController {
             throw new UploadException(e.getMessage());
         }
     }
-
-
 
 }

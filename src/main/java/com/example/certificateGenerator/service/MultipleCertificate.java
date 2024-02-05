@@ -1,6 +1,10 @@
 package com.example.certificateGenerator.service;
 
+import com.example.certificateGenerator.aspect.LoggingAspect;
 import com.example.certificateGenerator.entity.Recipient;
+import com.example.certificateGenerator.errorhandling.UploadException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -10,6 +14,8 @@ import java.util.Map;
 
 @Component
 public class MultipleCertificate implements Runnable{
+
+    Logger logger = LoggerFactory.getLogger(MultipleCertificate.class);
 
     private Map<Long,ByteArrayOutputStream> certArrayOutputStreamList;
     private Recipient recipient;
@@ -36,10 +42,15 @@ public class MultipleCertificate implements Runnable{
     public void run() {
 
         synchronized (this){
-            ByteArrayOutputStream certificate = fileService.generateCertificatePdf(getRecipient().getId());
-            getCertArrayOutputStreamList().put( getRecipient().getId(), certificate);
-        }
+            try{
+                logger.info("Running thread : " + Thread.currentThread().getName());
+                ByteArrayOutputStream certificate = fileService.generateCertificatePdf(getRecipient().getId());
+                getCertArrayOutputStreamList().put( getRecipient().getId(), certificate);
+            }catch(RuntimeException e){
+                throw new UploadException("Thread " + Thread.currentThread().getName() + " failed to finished");
+            }
 
+        }
 
     }
 
