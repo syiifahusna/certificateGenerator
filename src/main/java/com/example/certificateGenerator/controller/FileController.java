@@ -3,7 +3,6 @@ package com.example.certificateGenerator.controller;
 import com.example.certificateGenerator.entity.Certificate;
 import com.example.certificateGenerator.entity.UploadDetails;
 import com.example.certificateGenerator.entity.Recipient;
-import com.example.certificateGenerator.errorhandling.PathNotFoundException;
 import com.example.certificateGenerator.errorhandling.UploadException;
 import com.example.certificateGenerator.service.FileService;
 import org.springframework.core.io.ByteArrayResource;
@@ -11,7 +10,6 @@ import org.springframework.core.io.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -98,7 +96,7 @@ public class FileController {
             UploadDetails uploadDetails = new UploadDetails("Success", LocalDate.now(), recipients);
             return ResponseEntity.ok().body(uploadDetails);
 
-        }catch(IOException e){
+        }catch(IOException | NullPointerException e){
             throw new UploadException(e.getMessage());
         }
     }

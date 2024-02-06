@@ -47,7 +47,6 @@ public class FileServiceImp implements FileService{
     File fileBgImage = new File("files/img/cert_bg.jpg");
     File fileFont1 = new File("files/fonts/CaviarDreams.ttf");
     File fileFont2 =  new File("files/fonts/Julietta.ttf");
-
     Color colorText = Color.decode("#71644d");
 
     float x = 0; // X coordinate of the bg image
@@ -94,6 +93,10 @@ public class FileServiceImp implements FileService{
         while (iterator.hasNext() && iterationCount<100) {
             Recipient recipient = new Recipient();
             Row currentRow = iterator.next();
+
+            if(currentRow.getCell(0) == null || currentRow.getCell(1) == null || currentRow.getCell(2) == null){
+                throw new NullPointerException("No recipient found");
+            }
 
             if (currentRow.getCell(0).getCellType() == CellType.NUMERIC) {
                 recipient.setId(Double.valueOf(currentRow.getCell(0).getNumericCellValue()).longValue());
@@ -341,7 +344,6 @@ public class FileServiceImp implements FileService{
             throw new NullPointerException("No recipient found");
         }
 
-
         //Generate Certificate faster using thread
         Map<Long,ByteArrayOutputStream> certArrayOutputStreamList = new HashMap<>();
         Thread[] threads = new Thread[recipients.size()];
@@ -410,5 +412,14 @@ public class FileServiceImp implements FileService{
         }
 
         return null;
+    }
+
+    //for testing purpose
+    public void setRecipients(List<Recipient> recipients) {
+        this.recipients = recipients;
+    }
+
+    public void setCertificate(Certificate certificate) {
+        this.certificate = certificate;
     }
 }
