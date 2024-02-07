@@ -27,18 +27,19 @@ class UnknowPathControllerTest {
     @InjectMocks
     private UnknowPathController unknowPathController;
 
-    MockMvc mockMvc;
+    //MockMvc mockMvc;
 
     @Test
     void unknownPath() {
 
-        this.mockMvc = MockMvcBuilders.standaloneSetup(new UnknowPathController()).build();
-        try {
-            unknowPathController.unknownPath();
-            fail("Expected PathNotFoundException to be thrown");
-        } catch (PathNotFoundException e) {
-            Assertions.assertThat(e.getMessage()).isEqualTo("Path does not exist");
-       }
+        //this.mockMvc = MockMvcBuilders.standaloneSetup(new UnknowPathController()).build();
+
+        PathNotFoundException result = org.junit.jupiter.api.Assertions.assertThrows(
+                PathNotFoundException.class,
+                () -> unknowPathController.unknownPath()
+        );
+
+        Assertions.assertThat(result.getMessage()).isEqualTo("Path does not exist");
 
     }
 }

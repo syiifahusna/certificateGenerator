@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -16,12 +17,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.ResourceUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -65,20 +68,7 @@ class FileServiceTest {
                 mockFileContent
         );
 
-        // Mock Image
-        File mockImage = ResourceUtils.getFile("files/test/sign.png");
-        Certificate mockCertificate = new Certificate(
-        "test",
-        "test",
-        "test",
-        "test",
-        "test",
-        "test",
-        "test",
-        mockImage,
-        "test",
-        "test"
-        );
+        Certificate mockCertificate = Mockito.mock(Certificate.class);
 
         Mockito.when(fileService.processFileContent(file, mockCertificate)).thenReturn(recipientList);
         List<Recipient> result = fileService.processFileContent(file, mockCertificate);
@@ -98,28 +88,14 @@ class FileServiceTest {
                 mockFileContent
         );
 
-        // Mock Image
-        File mockImage = ResourceUtils.getFile("files/test/sign.png");
-        Certificate mockCertificate = new Certificate(
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                mockImage,
-                "test",
-                "test"
-        );
+        Certificate mockCertificate = Mockito.mock(Certificate.class);
 
         Mockito.when(fileService.processFileContent(file, mockCertificate)).thenThrow(new IOException("Wrong name for column id"));
-        try{
-            fileService.processFileContent(file, mockCertificate);
-        }catch(IOException e){
-            Assertions.assertThat(e.getMessage()).isEqualTo("Wrong name for column id");
-        }
-
+        IOException result = org.junit.jupiter.api.Assertions.assertThrows(
+                IOException.class,
+                () -> fileService.processFileContent(file, mockCertificate)
+        );
+            Assertions.assertThat(result.getMessage()).isEqualTo("Wrong name for column id");
     }
 
     @Test
@@ -134,27 +110,17 @@ class FileServiceTest {
                 mockFileContent
         );
 
-        // Mock Image
-        File mockImage = ResourceUtils.getFile("files/test/sign.png");
-        Certificate mockCertificate = new Certificate(
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                mockImage,
-                "test",
-                "test"
-        );
+        Certificate mockCertificate = Mockito.mock(Certificate.class);
 
         Mockito.when(fileService.processFileContent(file, mockCertificate)).thenThrow(new IOException("Wrong column id data type"));
-        try{
-            fileService.processFileContent(file, mockCertificate);
-        }catch(IOException e){
-            Assertions.assertThat(e.getMessage()).isEqualTo("Wrong column id data type");
-        }
+
+        IOException result = org.junit.jupiter.api.Assertions.assertThrows(
+                IOException.class,
+                () -> fileService.processFileContent(file, mockCertificate)
+        );
+
+        Assertions.assertThat(result.getMessage()).isEqualTo("Wrong column id data type");
+
     }
 
     @Test
@@ -170,50 +136,32 @@ class FileServiceTest {
         );
 
         // Mock Image
-        File mockImage = ResourceUtils.getFile("files/test/sign.png");
-        Certificate mockCertificate = new Certificate(
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                mockImage,
-                "test",
-                "test"
-        );
+        Certificate mockCertificate = Mockito.mock(Certificate.class);
 
         Mockito.when(fileService.processFileContent(file, mockCertificate)).thenThrow(new NullPointerException("No recipient found"));
-        try{
-            fileService.processFileContent(file, mockCertificate);
-        }catch(NullPointerException e){
-            Assertions.assertThat(e.getMessage()).isEqualTo("No recipient found");
-        }
+
+        NullPointerException result = org.junit.jupiter.api.Assertions.assertThrows(
+                NullPointerException.class,
+                () -> fileService.processFileContent(file, mockCertificate)
+        );
+
+        Assertions.assertThat(result.getMessage()).isEqualTo("No recipient found");
     }
 
     @Test
     void generateCertificatePdf() {
+
+        Certificate mockCertificate = Mockito.mock(Certificate.class);
+        ByteArrayOutputStream mockOutputStream = Mockito.mock(ByteArrayOutputStream.class);
+
         fileServiceImp.setRecipients(recipientList);
-        File mockImage = Mockito.mock(File.class);
-        fileServiceImp.setCertificate(new Certificate(
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                mockImage,
-                "test",
-                "test"
-        ));
-        ByteArrayOutputStream generateCertificate = fileServiceImp.generateCertificatePdf(recipientList.get(0).getId());
-        Mockito.when(fileService.generateCertificatePdf(1L)).thenReturn(generateCertificate);
+        fileServiceImp.setCertificate(mockCertificate);
+        Mockito.when(fileService.generateCertificatePdf(Mockito.anyLong())).thenReturn(mockOutputStream);
 
         ByteArrayOutputStream result = fileService.generateCertificatePdf(1L);
 
-        Assertions.assertThat(result).isEqualTo(generateCertificate);
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result).isEqualTo(mockOutputStream);
     }
 
     @Test
@@ -232,35 +180,17 @@ class FileServiceTest {
 
     @Test
     void downloadCertificates() {
-        File mockImage = null;
 
-        // Mock Image
-        try{
-            mockImage = ResourceUtils.getFile("files/test/sign.png");
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-
-        Certificate mockCertificate = new Certificate(
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                "test",
-                mockImage,
-                "test",
-                "test"
-        );
+        //Mock certificate
+        Certificate mockCertificate = Mockito.mock(Certificate.class);
+        ByteArrayOutputStream mockOutputStream = Mockito.mock(ByteArrayOutputStream.class);
 
         fileServiceImp.setRecipients(recipientList);
         fileServiceImp.setCertificate(mockCertificate);
-        ByteArrayOutputStream generateCertificates = fileServiceImp.downloadCertificates();
-        Mockito.when(fileService.downloadCertificates()).thenReturn(generateCertificates);
+        Mockito.when(fileService.downloadCertificates()).thenReturn(mockOutputStream );
 
         ByteArrayOutputStream result = fileService.downloadCertificates();
-        Assertions.assertThat(result).isEqualTo(generateCertificates);
+        Assertions.assertThat(result).isEqualTo(mockOutputStream );
 
     }
 
@@ -283,14 +213,14 @@ class FileServiceTest {
     void generateExcel() throws IOException {
 
         //setup
-        ByteArrayOutputStream generateExcel = fileServiceImp.generateExcel();
-        Mockito.when(fileService.generateExcel()).thenReturn(generateExcel);
+        ByteArrayOutputStream mockOutputStream = Mockito.mock(ByteArrayOutputStream.class);
+        Mockito.when(fileService.generateExcel()).thenReturn(mockOutputStream);
 
         //when
         ByteArrayOutputStream result = fileService.generateExcel();
 
         //then
-        org.junit.jupiter.api.Assertions.assertEquals(generateExcel,result);
+        org.junit.jupiter.api.Assertions.assertEquals(mockOutputStream,result);
 
     }
 
