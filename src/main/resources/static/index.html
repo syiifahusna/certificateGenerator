@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Generator</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.8/datatables.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-scroller py-1 mb-3 border-bottom">
+            <nav class="nav nav-underline justify-content-between">
+                <a class="nav-item nav-link link-body-emphasis active" href="index.html">Certificate Generator</a>
+                <!-- <a class="nav-item nav-link link-body-emphasis" href="#">Excel to Json</a>
+                <a class="nav-item nav-link link-body-emphasis" href="#">Json to Excel</a> -->
+                <!-- <a class="nav-item nav-link link-body-emphasis" href="#">Recepie Generator</a> -->
+            </nav>
+        </div>
+    </div>
+    <div class="container">
+        <div class="py-3 text-center">
+            <h2>Certificate Generator</h2>
+            <p class="lead"></p>
+        </div>
+        <div class="col d-flex justify-content-center">
+            <div class="col-md-5">
+                <div class="card">
+                 <div class="card-body">
+                    <ul>
+                        <li>Only first 100 names are be accepted </li>
+                        <li>Generating certificate may take some time</li>
+						<li>Download example xlsx file <a href="http://localhost:8080/api.certificategenerator/example/download" target="_blank" class="link-primary">here</a></li>
+                    </ul>
+                    <div id="alert"></div>
+                    <div>
+                        <div class="form-group">
+                            <label for="inputFileUpload">Upload File</label>
+                            <input class="form-control" type="file" id="inputFileUpload" accept=".xls,.xlsx">
+                            <small class="form-text text-muted">only xls and xlsx file</small><br>
+                            <small class="form-text text-muted">file size must be less than 100 kb</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="txtCertOf">Certificate Of</label>
+                            <input type="text" class="form-control" id="txtCertOf" maxlength="70" value="Participation" >
+                        </div>
+                        <div class="form-group">
+                            <label for="txtDesc1">Description 1</label>
+                            <input type="text" class="form-control" id="txtDesc1" maxlength="70" value="This certificate is proudly awarded to">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtDesc2">Description 2</label>
+                            <input type="text" class="form-control" id="txtDesc2" maxlength="70" value="for their outstanding participation in the">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtEventName">Event/Program Name</label>
+                            <input type="text" class="form-control" id="txtEventName" maxlength="70" value="[Event Name]">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtOrganizer">Organizer</label>
+                            <input type="text" class="form-control" id="txtOrganizer" maxlength="70" value="[Organizer]">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtDesc3">Description 3</label>
+                            <input type="text" class="form-control" id="txtDesc3" maxlength="70" value="Your commitment, dedication, and positive contributions">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtDesc4">Description 4</label>
+                            <input type="text" class="form-control" id="txtDesc4" maxlength="70" value="greatly enriched the overall experience for all involved">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputFileSignImage">Sign Image</label>
+                            <input class="form-control" type="file" id="inputFileSignImage" accept=".png">
+                            <small class="form-text text-muted">only png file</small><br>
+                            <small class="form-text text-muted">file size must be less than 500 kb</small><br>
+                            <small class="form-text text-muted">width and height must be the same</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="txtIssuerName">Issuer</label>
+                            <input type="text" class="form-control" id="txtIssuerName" maxlength="70" value="[Issuer Name]">
+                        </div>
+                        <div class="form-group">
+                            <label for="txtIssuerTitle">Issuer's Title/Position</label>
+                            <input type="text" class="form-control" id="txtIssuerTitle" maxlength="70" value="[Issuer Position]">
+                        </div>
+                        <br>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" id="btnUpload">Upload</button>
+                        </div>                         
+                    </div>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+    
+        <div class="py-5 text-center">
+            <h2>Name List</h2>
+            <p class="lead"></p>
+        </div>            
+        <div id="tableNameList" class="">
+        </div>
+    </div>
+
+    <footer class="my-5 pt-5 text-body-secondary text-center text-small">
+        <p class="mb-1">&copy; 2024 by Starry</p>
+    </footer>
+   
+    <script src="js/bootstrap.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/v/bs5/dt-1.13.8/datatables.min.js"></script>
+    <script src="js/custom/request.js"></script>
+</body>
+</html>
