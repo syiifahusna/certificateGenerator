@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UnknowPathController {
 
-    @RequestMapping("/**")
-    public ResponseEntity unknownPath(){
-        throw new PathNotFoundException("Path does not exist");
-    }
+//    @RequestMapping("/**")
+//    public ResponseEntity unknownPath(){
+//        throw new PathNotFoundException("Path does not exist");
+//    }
 
 }

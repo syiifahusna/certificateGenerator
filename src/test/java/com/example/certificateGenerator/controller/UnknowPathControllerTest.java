@@ -29,17 +29,17 @@ class UnknowPathControllerTest {
 
     //MockMvc mockMvc;
 
-    @Test
-    void unknownPath() {
-
-        //this.mockMvc = MockMvcBuilders.standaloneSetup(new UnknowPathController()).build();
-
-        PathNotFoundException result = org.junit.jupiter.api.Assertions.assertThrows(
-                PathNotFoundException.class,
-                () -> unknowPathController.unknownPath()
-        );
-
-        Assertions.assertThat(result.getMessage()).isEqualTo("Path does not exist");
-
-    }
+//    @Test
+//    void unknownPath() {
+//
+//        //this.mockMvc = MockMvcBuilders.standaloneSetup(new UnknowPathController()).build();
+//
+//        PathNotFoundException result = org.junit.jupiter.api.Assertions.assertThrows(
+//                PathNotFoundException.class,
+//                () -> unknowPathController.unknownPath()
+//        );
+//
+//        Assertions.assertThat(result.getMessage()).isEqualTo("Path does not exist");
+//
+//    }
 }
