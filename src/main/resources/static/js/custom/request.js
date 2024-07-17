@@ -129,7 +129,7 @@ btnUpload.addEventListener('click', function(){
     tableNameList.className = tableNameList.className.replace("d-none","d-block")
     tableNameList.innerHTML = `<h1>Loading...</h1>`
 
-    fetch('http://localhost:8081/certificategenerator/api.certificategenerator/processfile', {
+    fetch('http://192.168.0.105/certificategenerator/api.certificategenerator/processfile', {
         method: 'POST',
         body: formData
     })
@@ -173,8 +173,8 @@ function tableData(recipients){
             <td>${recipient.id}</td>
             <td>${recipient.name}</td>
             <td>${recipient.issuedDate}</td>
-            <td><a class="btn btn-primary" href="http://localhost:8081/certificategenerator/api.certificategenerator/${recipient.id}/pdf" target="_blank">View</a>
-           <a class="btn btn-primary" href="http://localhost:8081/certificategenerator/api.certificategenerator/${recipient.id}/download" target="_blank">Download</a>
+            <td><a class="btn btn-primary" href="http://192.168.0.105/certificategenerator/api.certificategenerator/${recipient.id}/pdf" target="_blank">View</a>
+           <a class="btn btn-primary" href="http://192.168.0.105/certificategenerator/api.certificategenerator/${recipient.id}/download" target="_blank">Download</a>
         </tr>`
     });
 
@@ -193,7 +193,7 @@ function tableData(recipients){
 </table>
 <br>
 <div>
-    <a class="btn btn-primary" href="http://localhost:8081/certificategenerator/api.certificategenerator/download" target="_blank">Download All</a>
+    <a class="btn btn-primary" href="http://192.168.0.105/certificategenerator/api.certificategenerator/download" target="_blank">Download All</a>
 </div>`
 }
 
