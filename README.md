@@ -4,13 +4,6 @@
 A simple certificate generator app
 
 
-
-## Demo
-
-Test server host: http://192.168.0.105/certificategenerator/
-
-Warning: No ssl, view at your own risk
-
 ## Localhost
 
 To run this project on localhost:
