@@ -90,7 +90,7 @@ public class FileServiceImp implements FileService{
         }
 
         // Extract data
-        while (iterator.hasNext() && iterationCount<100) {
+        while (iterator.hasNext() && iterationCount<50) {
             Recipient recipient = new Recipient();
             Row currentRow = iterator.next();
 
