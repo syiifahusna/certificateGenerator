@@ -65,7 +65,7 @@ class FileControllerTest {
 
         // Then
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(response.getBody()).isNull();
+        Assertions.assertThat(response.getBody()).isNotNull();
         Assertions.assertThat(response.getBody()).isInstanceOf(UploadDetails.class);
     }
 
