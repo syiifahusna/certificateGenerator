@@ -16,8 +16,8 @@ pipeline {
                     rm -rf certificateGenerator &&
                     git clone -b ${GIT_BRANCH} ${GIT_REPO} &&
                     cd certificateGenerator &&
-                    docker rmi -f certificate-generator:latest || true &&
-                    docker build -t certificate-generator:latest .
+                    sudo docker rmi -f certificate-generator:latest || true &&
+                    sudo docker build -t certificate-generator:latest .
                 '
                 """
             }
