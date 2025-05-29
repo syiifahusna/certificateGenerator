@@ -8,8 +8,9 @@ pipeline {
         REPO     = "https://github.com/syiifahusna/certificateGenerator.git"
         BRANCH   = "testjenkins"
         PROJECT  = "certificateGenerator"
-        IMAGE_NAME = "certificate-generator" // This is the image name used in 'Build Docker Image'
+        IMAGE_NAME = "certificate-generator"
         CONTAINER_NAME = "certificate-generator-container"
+        CONTAINER_PORT = "8081" // Added for clarity
     }
 
     stages {
@@ -51,16 +52,22 @@ pipeline {
             steps {
                 sh """
                 ssh -i ${PEM_KEY} -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                    # Remove existing container if it exists
+                    # Stop the existing container if it is running
+                    if [ \$(sudo docker ps -q -f name=${CONTAINER_NAME}) ]; then
+                        echo "Stopping container ${CONTAINER_NAME}..."
+                        sudo docker stop ${CONTAINER_NAME}
+                    fi
+
+                    # Remove the existing container if it exists
                     if [ \$(sudo docker ps -a -q -f name=${CONTAINER_NAME}) ]; then
+                        echo "Removing container ${CONTAINER_NAME}..."
                         sudo docker rm -f ${CONTAINER_NAME}
                     fi
-                    # Run new container
-                    # Add any necessary port mappings or environment variables here
-                    # For example, to run in detached mode and map port 8080:
-                    # sudo docker run -d -p 8081:8081 --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
-                    # For this example, running in detached mode:
-                    sudo docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
+
+                    echo "Running new container ${CONTAINER_NAME} from image ${IMAGE_NAME}:latest on port ${CONTAINER_PORT}"
+                    # Run new container, mapping the specified port
+                    # The first ${CONTAINER_PORT} is the host port, the second is the container port
+                    sudo docker run -d -p ${CONTAINER_PORT}:${CONTAINER_PORT} --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
                 '
                 """
             }
