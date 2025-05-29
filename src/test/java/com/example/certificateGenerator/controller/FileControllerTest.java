@@ -2,7 +2,6 @@ package com.example.certificateGenerator.controller;
 
 import com.example.certificateGenerator.entity.Recipient;
 import com.example.certificateGenerator.entity.UploadDetails;
-import com.example.certificateGenerator.errorhandling.PathNotFoundException;
 import com.example.certificateGenerator.errorhandling.UploadException;
 import com.example.certificateGenerator.service.FileService;
 import org.assertj.core.api.Assertions;
@@ -66,7 +65,7 @@ class FileControllerTest {
 
         // Then
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(response.getBody()).isNotNull();
+        Assertions.assertThat(response.getBody()).isNull();
         Assertions.assertThat(response.getBody()).isInstanceOf(UploadDetails.class);
     }
 
