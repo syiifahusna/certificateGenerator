@@ -2,7 +2,6 @@ package com.example.certificateGenerator.controller;
 
 import com.example.certificateGenerator.entity.Recipient;
 import com.example.certificateGenerator.entity.UploadDetails;
-import com.example.certificateGenerator.errorhandling.PathNotFoundException;
 import com.example.certificateGenerator.errorhandling.UploadException;
 import com.example.certificateGenerator.service.FileService;
 import org.assertj.core.api.Assertions;
